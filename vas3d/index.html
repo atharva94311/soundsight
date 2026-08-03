@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Visual Alert System — 3D Digital Twin</title>
+<link rel="stylesheet" href="./css/style.css" />
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+
+<div id="app">
+  <canvas id="view"></canvas>
+  <div id="tags"></div>
+
+  <!-- ================= TOP BAR ================= -->
+  <header id="topbar">
+    <div class="brand">
+      <div class="mark"></div>
+      <div>
+        <h1>SoundSight</h1>
+        <p>Visual alert system for hard-of-hearing users · 3D digital twin</p>
+      </div>
+    </div>
+    <div class="chips" id="chips">
+      <div class="chip" id="chip-state"><span class="dot ok"></span><b>ARMED</b></div>
+      <div class="chip" id="chip-net"><span class="dot ok"></span>MQTT</div>
+      <div class="chip" id="chip-power"><span class="dot ok"></span>Mains · 94%</div>
+      <div class="chip" id="chip-mode"><span class="dot"></span>Sleep mode</div>
+      <div class="chip mono" id="chip-lat">— ms</div>
+    </div>
+  </header>
+
+  <!-- ================= LEFT ================= -->
+  <aside id="left">
+    <section class="panel">
+      <h2>Trigger a sound<span class="hint">1–6</span></h2>
+      <div id="events"></div>
+    </section>
+
+    <section class="panel" id="livePanel">
+      <h2>Live microphone<span class="hint" id="liveHint">off</span></h2>
+      <button id="micBtn" class="mic">🎤 Listen with my mic</button>
+      <div id="liveBody" class="live-off">
+        Runs the real TinyML classifier on this machine's microphone. Nothing is
+        recorded or uploaded — audio never leaves the page.
+      </div>
+      <div id="liveMeters" class="meters hidden">
+        <div class="levelrow"><span>input</span><div class="level"><i id="levelBar"></i></div></div>
+        <div id="probs"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Conditions</h2>
+      <div class="toggles">
+        <button class="tg on" data-t="wifi"><i></i>Wi-Fi / MQTT</button>
+        <button class="tg on" data-t="night"><i></i>Night · aids out</button>
+        <button class="tg on" data-t="mains"><i></i>Mains power</button>
+        <button class="tg" data-t="coverage"><i></i>Mic coverage</button>
+        <button class="tg" data-t="slow"><i></i>Slow motion</button>
+      </div>
+      <p class="note" id="condNote">Wi-Fi down? Nodes fall back to ESP-NOW and the beacon runs the decision engine locally.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Camera</h2>
+      <div class="cams">
+        <button data-cam="overview">Overview</button>
+        <button data-cam="bedroom">Bedroom</button>
+        <button data-cam="kitchen">Kitchen</button>
+        <button data-cam="living">Living room</button>
+        <button data-cam="door">Entry</button>
+        <button data-cam="hub">Hub</button>
+        <button data-cam="top">Floor plan</button>
+      </div>
+      <p class="note">Drag to orbit · right-drag to pan · scroll to zoom · click any module to open it up.</p>
+    </section>
+  </aside>
+
+  <!-- ================= RIGHT ================= -->
+  <aside id="right">
+    <section class="panel phonewrap">
+      <h2>Phone app<span class="hint">live</span></h2>
+      <div class="phone" id="phoneMount"></div>
+      <button id="ackBtn" class="ack" disabled>Acknowledge</button>
+    </section>
+
+    <section class="panel">
+      <h2>Signal chain</h2>
+      <ol id="chain"></ol>
+      <div class="budget"><span>End-to-end</span><b id="budget">— ms</b></div>
+    </section>
+
+    <section class="panel" id="designCard">
+      <h2>Alert design</h2>
+      <div id="designBody" class="design-empty">Idle — pick a sound on the left.</div>
+    </section>
+  </aside>
+
+  <!-- ================= LOG ================= -->
+  <footer id="bottom">
+    <div class="logbar">
+      <span class="logtitle">hub console</span>
+      <button id="autoDemo">▶ Run scripted demo</button>
+      <button id="clearBtn">Reset</button>
+    </div>
+    <div id="log"></div>
+  </footer>
+
+  <!-- ================= INSPECTOR ================= -->
+  <svg id="leaders"></svg>
+  <div id="callouts"></div>
+
+  <aside id="inspector" class="hidden">
+    <div class="insphead">
+      <h3 id="inspName"></h3>
+      <button class="close" id="inspClose">✕ close</button>
+    </div>
+    <p class="mcu mono" id="inspMcu"></p>
+    <p class="blurb" id="inspBlurb"></p>
+
+    <h4>How it works</h4>
+    <p class="how" id="inspHow"></p>
+
+    <h4 id="inspWireTitle">Connections</h4>
+    <table id="inspWire"></table>
+
+    <div class="gotcha"><b>Watch out</b><span id="inspGotcha"></span></div>
+
+    <h4>Bill of materials</h4>
+    <table id="inspBom"></table>
+    <div class="bomtotal"><span>Module cost</span><b id="inspTotal"></b></div>
+    <p class="duty mono" id="inspDuty"></p>
+  </aside>
+
+  <!-- ================= INTRO ================= -->
+  <div id="intro">
+    <div class="introcard">
+      <div class="mark big"></div>
+      <h1>SoundSight</h1>
+      <h2>A modular visual &amp; haptic alert system for hard-of-hearing users</h2>
+      <p>
+        This is a working 3D twin of the system: a hostel flat with three listening modules,
+        a bedside alert beacon, a bed shaker, a wearable band and a phone app. Trigger a sound
+        and watch it travel — microphone → TinyML on the ESP32 → MQTT → decision engine →
+        light, vibration and text.
+      </p>
+      <div class="introgrid">
+        <div><b>6</b><span>sound classes, one deliberately rejected</span></div>
+        <div><b id="statLatency">— ms</b><span>modelled end-to-end latency</span></div>
+        <div><b id="statCost">—</b><span id="statCostLabel">bill of materials</span></div>
+        <div><b>0</b><span>internet dependency — ESP-NOW fallback</span></div>
+      </div>
+      <button id="introGo">Enter the flat</button>
+      <p class="tiny">Drag to orbit · scroll to zoom · click a module to open it up</p>
+    </div>
+  </div>
+
+  <div id="loading">building the flat…</div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

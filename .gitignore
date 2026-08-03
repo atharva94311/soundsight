@@ -1,0 +1,14 @@
+# Datasets and derived caches — 57 GB, all re-fetchable with ml/fetch_data.sh
+ml/data/
+
+# Python
+ml/.venv/
+__pycache__/
+*.pyc
+
+# Editors / OS
+.DS_Store
+*.swp
+
+# Node (only ever used for the parity tests, no dependencies)
+node_modules/

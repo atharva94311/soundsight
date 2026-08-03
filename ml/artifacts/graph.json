@@ -1,0 +1,150 @@
+{
+  "ops": [
+    {
+      "type": "conv",
+      "cin": 1,
+      "cout": 32,
+      "kh": 3,
+      "kw": 3,
+      "sh": 2,
+      "sw": 2,
+      "ph": 1,
+      "pw": 1,
+      "groups": 1,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 32,
+      "cout": 32,
+      "kh": 3,
+      "kw": 3,
+      "sh": 2,
+      "sw": 2,
+      "ph": 1,
+      "pw": 1,
+      "groups": 32,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 32,
+      "cout": 64,
+      "kh": 1,
+      "kw": 1,
+      "sh": 1,
+      "sw": 1,
+      "ph": 0,
+      "pw": 0,
+      "groups": 1,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 64,
+      "cout": 64,
+      "kh": 3,
+      "kw": 3,
+      "sh": 1,
+      "sw": 1,
+      "ph": 1,
+      "pw": 1,
+      "groups": 64,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 64,
+      "cout": 64,
+      "kh": 1,
+      "kw": 1,
+      "sh": 1,
+      "sw": 1,
+      "ph": 0,
+      "pw": 0,
+      "groups": 1,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 64,
+      "cout": 64,
+      "kh": 3,
+      "kw": 3,
+      "sh": 1,
+      "sw": 1,
+      "ph": 1,
+      "pw": 1,
+      "groups": 64,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 64,
+      "cout": 128,
+      "kh": 1,
+      "kw": 1,
+      "sh": 1,
+      "sw": 1,
+      "ph": 0,
+      "pw": 0,
+      "groups": 1,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 128,
+      "cout": 128,
+      "kh": 3,
+      "kw": 3,
+      "sh": 2,
+      "sw": 2,
+      "ph": 1,
+      "pw": 1,
+      "groups": 128,
+      "relu": true
+    },
+    {
+      "type": "conv",
+      "cin": 128,
+      "cout": 128,
+      "kh": 1,
+      "kw": 1,
+      "sh": 1,
+      "sw": 1,
+      "ph": 0,
+      "pw": 0,
+      "groups": 1,
+      "relu": true
+    },
+    {
+      "type": "gap"
+    },
+    {
+      "type": "linear",
+      "cin": 128,
+      "cout": 6,
+      "relu": false
+    }
+  ],
+  "classes": [
+    "doorbell",
+    "fire_alarm",
+    "baby_cry",
+    "glass_break",
+    "tv_music",
+    "background"
+  ],
+  "norm": {
+    "mean": -4.113832950592041,
+    "std": 5.510509967803955
+  },
+  "temperature": 0.9186779765813381,
+  "runtime": {
+    "conf_threshold": 0.75,
+    "smooth_window": 5,
+    "smooth_hits": 3,
+    "refractory_s": 8.0,
+    "infer_hop_s": 0.25
+  }
+}

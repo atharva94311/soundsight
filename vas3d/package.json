@@ -1,0 +1,6 @@
+{
+  "name": "vas3d",
+  "private": true,
+  "type": "module",
+  "description": "Marks the twin's JS as ES modules so node (used by the feature parity test) resolves them the same way the browser does. No dependencies, no build step."
+}

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vas3d",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8123", "--directory", "vas3d"],
+      "port": 8123
+    },
+    {
+      "name": "vas3d-8124",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8124", "--directory", "vas3d"],
+      "port": 8124
+    }
+  ]
+}
