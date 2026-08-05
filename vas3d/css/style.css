@@ -400,3 +400,41 @@ body.inspecting #leaders { opacity: 1; }
 .prow b { width: 26px; text-align: right; font-family: var(--mono); font-size: 9.5px; color: var(--dimmer); font-weight: 500; }
 .prow.hot .bar i { background: var(--acc); }
 .prow.hot span, .prow.hot b { color: var(--ink); }
+
+/* ------------------------------------------------- guided walkthrough */
+.stepbtn { margin-left: 6px; }
+
+#caption {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: 74px; width: min(660px, calc(100vw - 640px));
+  background: rgba(10, 14, 20, .93);
+  border: 1px solid rgba(140, 170, 210, .18);
+  border-left: 3px solid var(--acc);
+  border-radius: 10px; padding: 13px 17px 15px;
+  backdrop-filter: blur(9px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .55);
+  z-index: 40; pointer-events: none;
+  transition: opacity .25s ease;
+}
+#caption.hidden { opacity: 0; pointer-events: none; }
+
+.cap-step {
+  display: flex; gap: 10px; align-items: center;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dimmer); margin-bottom: 5px;
+}
+.cap-step span:first-child { color: var(--acc); }
+
+#caption h3 {
+  margin: 0 0 6px; font-size: 16px; font-weight: 650;
+  letter-spacing: -.01em; color: var(--ink);
+}
+#caption p {
+  margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--dim);
+}
+#caption p b { color: var(--ink); font-weight: 600; }
+#caption p em { color: var(--acc); font-style: normal; }
+
+@media (max-width: 1400px) {
+  #caption { width: min(560px, calc(100vw - 560px)); }
+}

@@ -104,7 +104,10 @@
   <footer id="bottom">
     <div class="logbar">
       <span class="logtitle">hub console</span>
-      <button id="autoDemo">▶ Run scripted demo</button>
+      <button id="autoDemo">▶ Guided walkthrough</button>
+      <button id="demoPrev" class="stepbtn" hidden>‹ Back</button>
+      <button id="demoNext" class="stepbtn" hidden>Next ›</button>
+      <button id="demoPlay" class="stepbtn" hidden>▶ Auto</button>
       <button id="clearBtn">Reset</button>
     </div>
     <div id="log"></div>
@@ -157,6 +160,14 @@
       <button id="introGo">Enter the flat</button>
       <p class="tiny">Drag to orbit · scroll to zoom · click a module to open it up</p>
     </div>
+  </div>
+
+  <!-- Guided-walkthrough caption. Sits over the 3D view so the audience reads
+       what is happening while it happens, instead of hunting the console. -->
+  <div id="caption" class="hidden">
+    <div class="cap-step"><span id="capNum">1 / 8</span><span id="capChapter"></span></div>
+    <h3 id="capTitle"></h3>
+    <p id="capWatch"></p>
   </div>
 
   <div id="loading">building the flat…</div>
