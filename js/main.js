@@ -491,6 +491,16 @@ canvas.addEventListener('pointerup', (e) => {
 
 // ---- keyboard -----------------------------------------------------------
 addEventListener('keydown', (e) => {
+  // Arrow keys step the walkthrough — the same keys a clicker sends, so the
+  // demo can be driven from the back of a room without touching the laptop.
+  if (typeof demo !== 'undefined' && demo) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+      e.preventDefault(); document.getElementById('demoNext').click(); return;
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault(); document.getElementById('demoPrev').click(); return;
+    }
+  }
   const ev = EVENTS.find((x) => x.key === e.key);
   if (ev) { pipe.trigger(ev.id); return; }
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pipe.ack(); }
@@ -550,31 +560,172 @@ function renderDesign(ev) {
 // ===========================================================================
 //  Scripted demo
 // ===========================================================================
+// Each beat says what it is doing AND what to look at while it happens. The old
+// version wrote one line into the hub console, which is unreadable from the back
+// of a room — by the time you find it the effect has already played.
 const DEMO = [
-  { at: 0.2,  cam: 'door',    say: '— scripted demo: doorbell at the main door' },
-  { at: 1.8,  trigger: 'doorbell' },
-  { at: 8.0,  cam: 'kitchen', say: '— now a fire alarm, user asleep with aids out' },
-  { at: 10.0, trigger: 'fire' },
-  { at: 15.0, cam: 'bedroom' },
-  { at: 29.0, say: '— nobody acknowledged: escalation fires' },
-  { at: 33.0, ack: true },
-  { at: 36.0, cam: 'living',  say: '— TV noise: the model must NOT alert' },
-  { at: 37.5, trigger: 'tv' },
-  { at: 42.0, cam: 'overview', wifi: false, say: '— Wi-Fi pulled: ESP-NOW fallback' },
-  { at: 44.0, trigger: 'glass' },
-  { at: 52.0, wifi: true, say: '— demo complete' },
+  {
+    chapter: 'the idea',
+    title: 'A flat that listens',
+    watch: 'Three <b>listening modules</b> (entry, kitchen, living room), a bedside '
+         + '<b>beacon</b>, a <b>bed shaker</b> under the pillow, a <b>wearable band</b> '
+         + 'and a <b>phone</b>. Each module is an ESP32 with a microphone that classifies '
+         + 'sound <em>on the device</em> — audio never leaves the room.',
+    cam: 'overview', hold: 9,
+  },
+  {
+    chapter: 'low priority',
+    title: 'Someone rings the doorbell',
+    watch: 'Watch the <b>Door Module</b> light up as it hears the sound, then a packet '
+         + 'fly to the hub. The beacon gives <em>two slow blue pulses</em> and the band '
+         + 'buzzes twice. The <b>bed shaker stays off</b> — this is LOW priority, and '
+         + 'waking someone at 3 a.m. for a visitor is its own harm.',
+    cam: 'door', trigger: 'doorbell', hold: 11,
+  },
+  {
+    chapter: 'critical',
+    title: 'Fire alarm in the kitchen',
+    watch: 'The <b>Kitchen Module</b> hears it loudest, so the alert reads '
+         + '"Fire Alarm — Kitchen". <em>Two</em> modules hear it and the hub '
+         + 'de-duplicates. Now the whole room floods red at 4 Hz, the OLED reads '
+         + '"** FIRE ** GET OUT", and the <b>bed shaker fires</b> — the only channel '
+         + 'that reaches someone asleep with hearing aids out.',
+    cam: 'kitchen', trigger: 'fire', hold: 7,
+  },
+  {
+    chapter: 'critical',
+    title: 'Nobody acknowledges',
+    watch: 'Look at the phone: a <b>30-second countdown</b> is running. If the user '
+         + 'does not acknowledge, the system assumes they cannot — and <em>escalates</em>, '
+         + 'calling the emergency contact. Wait for the timer, or press Next.',
+    cam: 'bedroom', hold: 16,
+  },
+  {
+    chapter: 'critical',
+    title: 'Acknowledged',
+    watch: 'One tap on the phone (or the beacon button) clears everything — lights, '
+         + 'shaker, band. The event stays in <b>history</b> so it can be reviewed later.',
+    cam: 'bedroom', ack: true, hold: 7,
+  },
+  {
+    chapter: 'the hard part',
+    title: 'The television is NOT an alert',
+    watch: 'This is the most important step. The model hears the TV, classifies it, '
+         + 'and the confidence lands <em>below the 75% gate</em> — so it is '
+         + '<b>suppressed</b>. Watch the console: "unknown … → suppressed". A system '
+         + 'that cries fire at the television gets unplugged in a week.',
+    cam: 'living', trigger: 'tv', hold: 10,
+  },
+  {
+    chapter: 'failure mode',
+    title: 'Wi-Fi goes down',
+    watch: 'The router is gone. Nodes fall back to <b>ESP-NOW</b>, talking peer-to-peer '
+         + 'straight to the beacon, which takes over the decision logic itself. '
+         + 'Notice the path on screen no longer goes through the hub.',
+    cam: 'overview', wifi: false, hold: 8,
+  },
+  {
+    chapter: 'failure mode',
+    title: 'Glass breaks — still alerts, offline',
+    watch: 'Full alert with no internet and no hub: light, vibration, shaker, band. '
+         + 'The phone shows <b>OFFLINE — no push</b>. The one thing that breaks is the '
+         + 'one thing that <em>should</em> break, and it says so instead of hiding it. '
+         + 'ESP-NOW is actually <em>faster</em>: 303 ms vs 329 ms.',
+    cam: 'overview', trigger: 'glass', hold: 12,
+  },
+  {
+    chapter: 'wrap up',
+    title: 'Back online',
+    watch: 'Wi-Fi restored, three nodes report in. Total cost <b>₹5,630</b> for all six '
+         + 'modules, or <b>₹2,520</b> for a hostel starter kit — one node, a beacon and '
+         + 'a shaker. Every figure comes from the parts list, so the numbers cannot drift.',
+    cam: 'hub', wifi: true, hold: 9,
+  },
 ];
-let demo = null;
-document.getElementById('autoDemo').addEventListener('click', () => {
-  if (demo) { demo = null; document.getElementById('autoDemo').textContent = '▶ Run scripted demo'; return; }
+
+const capEl = document.getElementById('caption');
+const capNum = document.getElementById('capNum');
+const capChapter = document.getElementById('capChapter');
+const capTitle = document.getElementById('capTitle');
+const capWatch = document.getElementById('capWatch');
+const btnDemo = document.getElementById('autoDemo');
+const btnPrev = document.getElementById('demoPrev');
+const btnNext = document.getElementById('demoNext');
+const btnPlay = document.getElementById('demoPlay');
+
+let demo = null;   // { i, auto, t }
+
+function showCaption(i) {
+  const b = DEMO[i];
+  capNum.textContent = `${i + 1} / ${DEMO.length}`;
+  capChapter.textContent = b.chapter;
+  capTitle.textContent = b.title;
+  capWatch.innerHTML = b.watch;
+  capEl.classList.remove('hidden');
+}
+
+/** Apply one beat: move the camera, flip conditions, fire the event. */
+function runBeat(i) {
+  const b = DEMO[i];
+  if (!b) return;
+  demo.i = i;
+  showCaption(i);
+
+  if (b.cam && PRESETS[b.cam]) {
+    controls.flyTo(PRESETS[b.cam]);
+    document.querySelectorAll('.cams button')
+      .forEach((x) => x.classList.toggle('active', x.dataset.cam === b.cam));
+  }
+  if (b.wifi !== undefined) {
+    flags.wifi = b.wifi;
+    document.querySelector('[data-t="wifi"]').classList.toggle('on', b.wifi);
+    applyFlags();
+  }
+  if (b.trigger) pipe.trigger(b.trigger);
+  if (b.ack) pipe.ack();
+
+  btnPrev.disabled = i === 0;
+  btnNext.textContent = i === DEMO.length - 1 ? 'Finish' : 'Next ›';
+  if (demo) demo.t = 0;
+}
+
+function startDemo(auto) {
   if (listener) micBtn.click();   // the mic and the script cannot both drive the pipeline
   pipe.reset();
-  demo = { t: 0, i: 0 };
-  document.getElementById('autoDemo').textContent = '■ Stop demo';
-});
-document.getElementById('clearBtn').addEventListener('click', () => {
+  demo = { i: -1, auto, t: 0 };
+  btnDemo.textContent = '■ Stop';
+  [btnPrev, btnNext, btnPlay].forEach((b) => { b.hidden = false; });
+  btnPlay.textContent = auto ? '❙❙ Pause' : '▶ Auto';
+  runBeat(0);
+}
+
+function stopDemo() {
   demo = null;
-  document.getElementById('autoDemo').textContent = '▶ Run scripted demo';
+  btnDemo.textContent = '▶ Guided walkthrough';
+  [btnPrev, btnNext, btnPlay].forEach((b) => { b.hidden = true; });
+  capEl.classList.add('hidden');
+}
+
+btnDemo.addEventListener('click', () => (demo ? stopDemo() : startDemo(false)));
+btnNext.addEventListener('click', () => {
+  if (!demo) return;
+  if (demo.i >= DEMO.length - 1) { stopDemo(); pipe.reset(); return; }
+  runBeat(demo.i + 1);
+});
+btnPrev.addEventListener('click', () => {
+  if (!demo || demo.i <= 0) return;
+  pipe.reset();
+  runBeat(demo.i - 1);
+});
+btnPlay.addEventListener('click', () => {
+  if (!demo) return;
+  demo.auto = !demo.auto;
+  demo.t = 0;
+  btnPlay.textContent = demo.auto ? '❙❙ Pause' : '▶ Auto';
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  stopDemo();
   pipe.reset();
   listener?.clearHistory();
   closeInspector();
@@ -685,28 +836,16 @@ micBtn.addEventListener('click', async () => {
   try { await startListening(); } finally { micBtn.disabled = false; }
 });
 
+/** Auto mode only: hold each beat for its own duration, then advance.
+ *  In manual mode this does nothing and the Next button drives it. */
 function stepDemo(dt) {
-  if (!demo) return;
+  if (!demo || !demo.auto) return;
   demo.t += dt;
-  while (demo.i < DEMO.length && demo.t >= DEMO[demo.i].at) {
-    const s = DEMO[demo.i++];
-    if (s.cam && PRESETS[s.cam]) {
-      controls.flyTo(PRESETS[s.cam]);
-      document.querySelectorAll('.cams button').forEach((x) => x.classList.toggle('active', x.dataset.cam === s.cam));
-    }
-    if (s.say) pipe.log(s.say, '#8b98a8');
-    if (s.wifi !== undefined) {
-      flags.wifi = s.wifi;
-      document.querySelector('[data-t="wifi"]').classList.toggle('on', s.wifi);
-      applyFlags();
-    }
-    if (s.trigger) pipe.trigger(s.trigger);
-    if (s.ack) pipe.ack();
-  }
-  if (demo.i >= DEMO.length && demo.t > DEMO[DEMO.length - 1].at + 4) {
-    demo = null;
-    document.getElementById('autoDemo').textContent = '▶ Run scripted demo';
-  }
+  const b = DEMO[demo.i];
+  if (!b || demo.t < (b.hold ?? 8)) return;
+
+  if (demo.i >= DEMO.length - 1) { stopDemo(); return; }
+  runBeat(demo.i + 1);
 }
 
 // ===========================================================================
